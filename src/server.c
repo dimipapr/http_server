@@ -13,13 +13,20 @@
 #define RECEIVE_BUFFER_SIZE 1024
 
 typedef enum {
-    HTTP_GET,
-    HTTP_UNDEFINED
+    HTTP_METHOD_GET,
+    HTTP_METHOD_UNKNOWN
 }HttpMethod;
+
+typedef enum {
+    HTTP_VERSION_09,
+    HTTP_VERSION_UNKNOWN
+}HttpVersion;
 
 typedef struct {
     char *resource;
+    uint16_t resource_len;
     HttpMethod method;
+    HttpVersion version;
 }HttpRequest;
 
 void sigintHandler(int signo);
@@ -51,7 +58,7 @@ int main(int argc, char *argv[]){
         //handle connection
         char recv_buffer[RECEIVE_BUFFER_SIZE+1];
         memset(recv_buffer, '\0', RECEIVE_BUFFER_SIZE+1);
-        uint16_t received_bytes;
+        int received_bytes;
         received_bytes = read(client_fd, recv_buffer, RECEIVE_BUFFER_SIZE);
         if ( received_bytes == -1 ){
             printf("Failed to receive bytes from incomming connection: %s\n",strerror(errno));
@@ -59,10 +66,13 @@ int main(int argc, char *argv[]){
         }
         HttpRequest request;
         if( -1 == httpParseRequest(recv_buffer, &request) ){
+            printf("Error parsing request\n");
             continue;
         }
-        printf("Request received.\n");
-
+        printf("%s %s %s",(
+            request.method==HTTP_METHOD_GET)?"GET":"UNKNOWN",
+            request.resource,
+            (request.version==HTTP_VERSION_09)?"HTTP/0.9":"UNKNOWN\n");
         close(client_fd);
     }
 
@@ -72,8 +82,35 @@ int main(int argc, char *argv[]){
 int httpParseRequest(char *request_raw, HttpRequest *request){
     char *line1 = strtok( request_raw, "\r\n" );
     request_raw = strtok(NULL,"");
-    printf("line1:\n%s\n",line1);
-    printf("rest:\n%s\n",request_raw);
+    char *method = strtok(line1," ");
+    char *resource = strtok(NULL," ");
+    char *version = strtok(NULL," ");
+    
+    //get http method
+    if ( strncmp("GET",method,3) == 0 ){
+        request->method = HTTP_METHOD_GET;
+    }else{
+        request->method = HTTP_METHOD_UNKNOWN;
+        return -1;
+    }
+
+    //get resource
+    request->resource_len = strlen(resource);
+    request->resource = malloc((request->resource_len+1)*sizeof(char));
+    if( request->resource == NULL )
+    {
+        printf("Error allocating memory: %s\n",strerror(errno));
+        return -1;
+    }
+    request->resource[request->resource_len] = 0;
+    request->resource = strncpy(request->resource, resource, request->resource_len);
+
+    //get version
+    if ( version == NULL ){
+        request->version = HTTP_VERSION_09;
+    }else{
+        request->version = HTTP_VERSION_UNKNOWN;
+    }
     return 0;
 }
 
