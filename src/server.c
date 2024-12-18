@@ -27,7 +27,18 @@ int main(int argc, char *argv[]){
     server_fd = serverInit(port);
     printf("Listening on port %u\n", port);
 
-    for(;;);
+    for(;;){
+        int client_fd;
+        struct sockaddr_in client_sockaddr_in;
+        socklen_t client_sockaddr_in_len = sizeof(client_sockaddr_in);
+        if( -1 == (client_fd = accept(server_fd, (struct sockaddr*)&client_sockaddr_in, &client_sockaddr_in_len)) ){
+            printf("Error trying to initiate new connection: %s\n",strerror(errno));
+            continue;
+        }
+        //handle connection
+
+        close(client_fd);
+    }
 
     terminate(EXIT_SUCCESS);
 }
