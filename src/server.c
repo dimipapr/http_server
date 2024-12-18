@@ -10,10 +10,23 @@
 #define SERVER_DEFAULT_PORT 8000
 #define INCOMING_CONNECTIONS_QUEUE_MAX 10
 
+#define RECEIVE_BUFFER_SIZE 1024
+
+typedef enum {
+    HTTP_GET,
+    HTTP_UNDEFINED
+}HttpMethod;
+
+typedef struct {
+    char *resource;
+    HttpMethod method;
+}HttpRequest;
+
 void sigintHandler(int signo);
 void terminate(int exit_code);
 void parseInput(int argc, char *argv[]);
 int serverInit(uint16_t port);
+int httpParseRequest(char *request_raw, HttpRequest *request);
 
 int server_fd;
 uint16_t port;
@@ -36,11 +49,32 @@ int main(int argc, char *argv[]){
             continue;
         }
         //handle connection
+        char recv_buffer[RECEIVE_BUFFER_SIZE+1];
+        memset(recv_buffer, '\0', RECEIVE_BUFFER_SIZE+1);
+        uint16_t received_bytes;
+        received_bytes = read(client_fd, recv_buffer, RECEIVE_BUFFER_SIZE);
+        if ( received_bytes == -1 ){
+            printf("Failed to receive bytes from incomming connection: %s\n",strerror(errno));
+            continue;
+        }
+        HttpRequest request;
+        if( -1 == httpParseRequest(recv_buffer, &request) ){
+            continue;
+        }
+        printf("Request received.\n");
 
         close(client_fd);
     }
 
     terminate(EXIT_SUCCESS);
+}
+
+int httpParseRequest(char *request_raw, HttpRequest *request){
+    char *line1 = strtok( request_raw, "\r\n" );
+    request_raw = strtok(NULL,"");
+    printf("line1:\n%s\n",line1);
+    printf("rest:\n%s\n",request_raw);
+    return 0;
 }
 
 int serverInit(uint16_t port){
