@@ -21,15 +21,12 @@ uint16_t port;
 int main(int argc, char *argv[]){
     //register SIGINT handler
     signal(SIGINT, sigintHandler);
-    
     //parse input
     parseInput(argc, argv);
-    
+    //initialize server
     server_fd = serverInit(port);
-
-  
-    
     printf("Listening on port %u\n", port);
+
     for(;;);
 
     terminate(EXIT_SUCCESS);
