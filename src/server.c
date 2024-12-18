@@ -29,11 +29,17 @@ typedef struct {
     HttpVersion version;
 }HttpRequest;
 
+typedef struct {
+
+}HttpResponse;
+
 void sigintHandler(int signo);
 void terminate(int exit_code);
 void parseInput(int argc, char *argv[]);
 int serverInit(uint16_t port);
 int httpParseRequest(char *request_raw, HttpRequest *request);
+int httpProccessRequest(HttpRequest request, HttpResponse *response);
+int httpSendResponse(HttpResponse response);
 
 int server_fd;
 uint16_t port;
@@ -62,21 +68,40 @@ int main(int argc, char *argv[]){
         received_bytes = read(client_fd, recv_buffer, RECEIVE_BUFFER_SIZE);
         if ( received_bytes == -1 ){
             printf("Failed to receive bytes from incomming connection: %s\n",strerror(errno));
+            close(client_fd);
             continue;
         }
         HttpRequest request;
         if( -1 == httpParseRequest(recv_buffer, &request) ){
             printf("Error parsing request\n");
+            close(client_fd);
             continue;
         }
-        printf("%s %s %s",(
-            request.method==HTTP_METHOD_GET)?"GET":"UNKNOWN",
-            request.resource,
-            (request.version==HTTP_VERSION_09)?"HTTP/0.9":"UNKNOWN\n");
+        HttpResponse response;
+        if ( -1 == httpProccessRequest(request, &response) ){
+            printf("Error proccessing request.\n");
+            close(client_fd);
+            continue;
+        }
+
+        if ( -1 == httpSendResponse(response) ){
+            printf("Error responding to client,\n");
+            close(client_fd);
+            continue;
+        }
+
         close(client_fd);
     }
 
     terminate(EXIT_SUCCESS);
+}
+
+int httpSendResponse(HttpResponse response){
+    return 0;
+}
+
+int httpProccessRequest(HttpRequest request, HttpResponse *response){
+    return 0;
 }
 
 int httpParseRequest(char *request_raw, HttpRequest *request){
