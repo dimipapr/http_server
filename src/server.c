@@ -13,6 +13,7 @@
 void sigintHandler(int signo);
 void terminate(int exit_code);
 void parseInput(int argc, char *argv[]);
+int serverInit(uint16_t port);
 
 int server_fd;
 uint16_t port;
@@ -23,9 +24,19 @@ int main(int argc, char *argv[]){
     
     //parse input
     parseInput(argc, argv);
-    //create socket
+    
+    server_fd = serverInit(port);
 
-    server_fd = socket(AF_INET, SOCK_STREAM, 0);
+  
+    
+    printf("Listening on port %u\n", port);
+    for(;;);
+
+    terminate(EXIT_SUCCESS);
+}
+
+int serverInit(uint16_t port){
+    int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if( server_fd == -1){
         printf("Error creating socket: %s\n",strerror(errno));
         terminate(EXIT_FAILURE);
@@ -47,11 +58,7 @@ int main(int argc, char *argv[]){
         printf("Error trying to listen on port %u: %s\n", port, strerror(errno));
         terminate(EXIT_FAILURE);
     }
-    
-    printf("Listening on port %u\n", port);
-    for(;;);
-
-    terminate(EXIT_SUCCESS);
+    return server_fd;
 }
 
 void parseInput(int argc, char *argv[]){
