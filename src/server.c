@@ -30,7 +30,8 @@ typedef struct {
 }HttpRequest;
 
 typedef struct {
-
+    HttpVersion version;
+    int resource_fd;
 }HttpResponse;
 
 void sigintHandler(int signo);
@@ -101,6 +102,7 @@ int httpSendResponse(HttpResponse response){
 }
 
 int httpProccessRequest(HttpRequest request, HttpResponse *response){
+
     return 0;
 }
 
@@ -131,11 +133,8 @@ int httpParseRequest(char *request_raw, HttpRequest *request){
     request->resource = strncpy(request->resource, resource, request->resource_len);
 
     //get version
-    if ( version == NULL ){
-        request->version = HTTP_VERSION_09;
-    }else{
-        request->version = HTTP_VERSION_UNKNOWN;
-    }
+    (void)version;
+    request->version = HTTP_VERSION_09;
     return 0;
 }
 
