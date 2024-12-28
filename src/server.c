@@ -8,6 +8,8 @@
 #include <string.h>
 #include <errno.h>
 
+#define RECEIVE_BUFFER_SIZE 1024
+
 int main(int argc, char *argv[]){
     const uint16_t INCOMMING_CONNECTION_QUEUE_MAX = 10;
     uint16_t port;
@@ -48,5 +50,33 @@ int main(int argc, char *argv[]){
     }
 
     printf("Listening on port %u\n",port);
+
+    for (;;){
+        struct sockaddr_in sockaddr_in_client;
+        socklen_t sockaddr_in_client_length = sizeof(sockaddr_in_client);
+        int client_fd = accept(server_fd,(struct sockaddr*)&sockaddr_in_client, &sockaddr_in_client_length);
+        if (client_fd == -1){
+            printf("Error accepting connection: %s",strerror(errno));
+            continue;
+        }
+        char receive_buffer[RECEIVE_BUFFER_SIZE+1];
+        memset(receive_buffer, '\0', RECEIVE_BUFFER_SIZE+1);
+
+        int received_bytes = recv(client_fd, receive_buffer, RECEIVE_BUFFER_SIZE, 0);
+        if (received_bytes == -1){
+            printf("Error recv(): %s\n",strerror(errno));
+            close(client_fd);
+            continue;
+        }
+
+        char *dummy_404=
+        "HTTP/1.1 404 Not Found\r\n"
+        "\r\n"
+        "<html><h4>Sorry bro</h4></html>";
+        send(client_fd, dummy_404, strlen(dummy_404), 0);
+
+
+        close(client_fd);
+    }
 
 }
