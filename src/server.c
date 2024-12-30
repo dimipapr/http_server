@@ -10,18 +10,13 @@
 
 #define RECEIVE_BUFFER_SIZE 1024
 
+uint16_t parse_input(int argc, char *argv[]);
+
 int main(int argc, char *argv[]){
     const uint16_t INCOMMING_CONNECTION_QUEUE_MAX = 10;
     uint16_t port;
     //parse input
-    if (argc > 2){
-        printf("USAGE: ./server [port(default=8000)]");
-        exit(EXIT_FAILURE);
-    }else if (argc == 2){
-        port = atoi(argv[1]);
-    }else{
-        port = 8000;
-    }
+    port = parse_input(argc, argv);
     
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd == -1){
@@ -87,4 +82,15 @@ int main(int argc, char *argv[]){
         close(client_fd);
     }
 
+}
+
+uint16_t parse_input(int argc, char *argv[]){
+    if (argc > 2){
+        printf("USAGE: ./server [port(default=8000)]");
+        exit(EXIT_FAILURE);
+    }else if (argc == 2){
+        return atoi(argv[1]);
+    }else{
+        return 8000;
+    }
 }
