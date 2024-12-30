@@ -6,6 +6,8 @@ DEPS=src/server.c
 all:$(EXECUTABLE)
 	./$(EXECUTABLE)
 
+build:$(EXECUTABLE)
+
 $(EXECUTABLE):$(DEPS)
 	@mkdir -p bin
 	gcc -o $(EXECUTABLE) $(DEPS) $(CFLAGS)
@@ -13,4 +15,4 @@ $(EXECUTABLE):$(DEPS)
 clean:
 	rm -rf bin
 
-.PHONY: all clean
+.PHONY: all clean build
