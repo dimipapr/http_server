@@ -69,6 +69,14 @@ int main(int argc, char *argv[]){
             continue;
         }
 
+        //parse request
+        if(strncmp(receive_buffer, "GET",3)==0){
+            char *resource = NULL;
+            strtok(receive_buffer," ");
+            resource = strtok(NULL,"\n");
+            printf("%s\n",resource);
+        }
+
         char *dummy_404=
         "HTTP/1.1 404 Not Found\r\n"
         "\r\n"
